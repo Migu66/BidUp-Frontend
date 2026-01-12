@@ -98,6 +98,7 @@ npm run lint
 2. **No inventar** implementaciones sin verificar con el backend
 3. **Verificar** el repositorio del backend si es necesario
 4. **Preguntar primero**, implementar después
+5. **Cambio en backend**: Si hay que cambiar el backend, notificar al usuario
 
 ## Metadatos
 
