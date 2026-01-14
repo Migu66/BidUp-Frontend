@@ -28,6 +28,7 @@ function calculatePasswordStrength(password: string): PasswordStrength {
     uppercase: /[A-Z]/.test(password),
     lowercase: /[a-z]/.test(password),
     number: /\d/.test(password),
+    symbol: /[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\\/;'`~]/.test(password),
   };
 
   const metCount = Object.values(requirements).filter(Boolean).length;
@@ -40,6 +41,7 @@ function calculatePasswordStrength(password: string): PasswordStrength {
     { label: 'Débil', color: '#ef4444' },
     { label: 'Regular', color: '#f97316' },
     { label: 'Fuerte', color: '#eab308' },
+    { label: 'Muy fuerte', color: '#22c55e' },
     { label: 'Muy fuerte', color: '#22c55e' },
   ];
 

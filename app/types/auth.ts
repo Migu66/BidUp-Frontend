@@ -44,7 +44,7 @@ export interface RegisterFormErrors {
 }
 
 export interface PasswordStrength {
-  score: number; // 0-4
+  score: number; // 0-5
   label: 'Muy débil' | 'Débil' | 'Regular' | 'Fuerte' | 'Muy fuerte';
   color: string;
   requirements: {
@@ -52,5 +52,6 @@ export interface PasswordStrength {
     uppercase: boolean;
     lowercase: boolean;
     number: boolean;
+    symbol: boolean;
   };
 }

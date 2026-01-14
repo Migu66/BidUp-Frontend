@@ -17,6 +17,7 @@ export default function PasswordStrengthIndicator({
     2: 'bg-orange-500',
     3: 'bg-yellow-500',
     4: 'bg-green-500',
+    5: 'bg-green-500',
   };
 
   const requirements = [
@@ -24,6 +25,7 @@ export default function PasswordStrengthIndicator({
     { key: 'uppercase', label: 'Una letra mayúscula', met: strength.requirements.uppercase },
     { key: 'lowercase', label: 'Una letra minúscula', met: strength.requirements.lowercase },
     { key: 'number', label: 'Un número', met: strength.requirements.number },
+    { key: 'symbol', label: 'Un símbolo', met: strength.requirements.symbol },
   ];
 
   return (
@@ -47,7 +49,7 @@ export default function PasswordStrengthIndicator({
           </div>
           
           <div className="flex gap-1">
-            {[0, 1, 2, 3].map((index) => (
+            {[0, 1, 2, 3, 4].map((index) => (
               <div
                 key={index}
                 className={`

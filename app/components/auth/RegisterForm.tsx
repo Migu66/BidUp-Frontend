@@ -137,15 +137,8 @@ export default function RegisterForm() {
           onFocus={() => setShowPasswordStrength(true)}
           error={errors.password}
           icon={<LockIcon className="w-5 h-5" />}
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="transition-colors"
-            >
-              {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-            </button>
-          }
+          rightIcon={showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+          onRightIconClick={() => setShowPassword(!showPassword)}
           autoComplete="new-password"
           required
         />
@@ -165,15 +158,8 @@ export default function RegisterForm() {
           onChange={handleChange}
           error={errors.confirmPassword}
           icon={<LockIcon className="w-5 h-5" />}
-          rightIcon={
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="transition-colors"
-            >
-              {showConfirmPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-            </button>
-          }
+          rightIcon={showConfirmPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+          onRightIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
           autoComplete="new-password"
           required
         />
