@@ -4,12 +4,13 @@ import { useState, useCallback, type ChangeEvent, type FormEvent } from 'react';
 import type { 
   RegisterRequest, 
   RegisterFormErrors, 
-  PasswordStrength 
+  PasswordStrength,
+  AuthResponse 
 } from '@/app/types/auth';
 import { register, AuthError } from '@/app/lib/api/auth';
 
 interface UseRegisterFormOptions {
-  onSuccess?: () => void;
+  onSuccess?: (authData: AuthResponse) => void;
   onError?: (error: AuthError) => void;
 }
 
@@ -173,8 +174,8 @@ export function useRegisterForm(options: UseRegisterFormOptions = {}) {
     setErrors({});
 
     try {
-      await register(formData);
-      onSuccess?.();
+      const authData = await register(formData);
+      onSuccess?.(authData);
     } catch (error) {
       console.error('Error en registro:', error);
       

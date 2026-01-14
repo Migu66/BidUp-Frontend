@@ -7,6 +7,8 @@ import Input from '@/app/components/ui/Input';
 import Button from '@/app/components/ui/Button';
 import PasswordStrengthIndicator from '@/app/components/ui/PasswordStrengthIndicator';
 import { useRegisterForm } from '@/app/hooks/useRegisterForm';
+import { useAuth } from '@/app/context';
+import type { AuthResponse } from '@/app/types';
 import { 
   UserIcon, 
   MailIcon, 
@@ -19,6 +21,7 @@ import {
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -33,10 +36,11 @@ export default function RegisterForm() {
     handleSubmit,
     setShowPasswordStrength,
   } = useRegisterForm({
-    onSuccess: () => {
+    onSuccess: (authData: AuthResponse) => {
+      login(authData);
       setShowSuccess(true);
       setTimeout(() => {
-        router.push('/login');
+        router.push('/');
       }, 2000);
     },
   });
@@ -48,10 +52,10 @@ export default function RegisterForm() {
           <CheckCircleIcon className="w-10 h-10 text-green-400" />
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">
-          ¡Cuenta creada con éxito!
+          ¡Bienvenido a BidUp!
         </h2>
         <p className="text-gray-400">
-          Redirigiendo al inicio de sesión...
+          Redirigiendo a la página principal...
         </p>
       </div>
     );

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Input from '@/app/components/ui/Input';
 import Button from '@/app/components/ui/Button';
 import { useLoginForm } from '@/app/hooks/useLoginForm';
+import { useAuth } from '@/app/context';
 import { 
   MailIcon, 
   LockIcon, 
@@ -16,6 +17,7 @@ import {
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -26,7 +28,8 @@ export default function LoginForm() {
     handleChange,
     handleSubmit,
   } = useLoginForm({
-    onSuccess: () => {
+    onSuccess: (authData) => {
+      login(authData);
       setShowSuccess(true);
       setTimeout(() => {
         router.push('/');
