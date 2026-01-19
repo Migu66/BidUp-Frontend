@@ -5,8 +5,10 @@ import type { AuctionDto, CategoryDto } from "@/app/types";
 import { Header, Footer, HeroBanner, RegisterCTA } from "@/app/components/layout";
 import { AuctionGrid, CategoryFilter } from "@/app/components/auction";
 import { getActiveAuctions, getCategories, getAuctionsByCategory } from "@/app/lib/api";
+import { useAuth } from "@/app/context";
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   const [auctions, setAuctions] = useState<AuctionDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -105,7 +107,7 @@ export default function Home() {
           )}
         </section>
 
-        <RegisterCTA />
+        {!isAuthenticated && <RegisterCTA />}
       </main>
 
       <Footer />
