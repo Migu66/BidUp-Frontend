@@ -1,21 +1,34 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import type { AuctionDto, CategoryDto } from "@/app/types";
+import type { CategoryDto } from "@/app/types";
 import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
-import { getActiveAuctions, getCategories, getAuctionsByCategory } from "@/app/lib/api";
+import { getCategories } from "@/app/lib/api";
 import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
+import { useInfiniteAuctions } from "@/app/hooks/useInfiniteAuctions";
 
 export default function AuctionsPage() {
-  const [auctions, setAuctions] = useState<AuctionDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Hook de filtros avanzados
+  // Hook de infinite scroll - el backend controla la paginación
+  const {
+    auctions,
+    totalCount,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    reset,
+    sentinelRef,
+  } = useInfiniteAuctions({
+    pageSize: 20,
+    category: selectedCategory,
+  });
+
+  // Hook de filtros avanzados (aplica filtros locales sobre los datos ya cargados)
   const {
     filters,
     updateFilter,
@@ -39,37 +52,6 @@ export default function AuctionsPage() {
     loadCategories();
   }, []);
 
-  // Cargar subastas cuando cambia la categoría seleccionada
-  useEffect(() => {
-    async function loadAuctions() {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        let data: AuctionDto[];
-
-        if (selectedCategory === "all") {
-          data = await getActiveAuctions();
-        } else {
-          data = await getAuctionsByCategory(selectedCategory);
-        }
-
-        setAuctions(data);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Error al cargar las subastas";
-        setError(errorMessage);
-        setAuctions([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadAuctions();
-  }, [selectedCategory]);
-
   // Preparar categorías para el filtro (añadiendo "Todas" al inicio)
   const categoryFilters = useMemo(() => {
     const totalAuctions = categories.reduce((sum, cat) => sum + cat.auctionCount, 0);
@@ -92,7 +74,10 @@ export default function AuctionsPage() {
             Subastas Activas
           </h1>
           <p className="text-gray-400">
-            Explora todas las subastas disponibles en tiempo real
+            {totalCount > 0 
+              ? `Mostrando ${auctions.length} de ${totalCount} subastas disponibles`
+              : "Explora todas las subastas disponibles en tiempo real"
+            }
           </p>
         </div>
 
@@ -138,7 +123,7 @@ export default function AuctionsPage() {
             </h3>
             <p className="text-gray-500 mb-4">{error}</p>
             <button
-              onClick={() => setSelectedCategory(selectedCategory)}
+              onClick={reset}
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               Reintentar
@@ -150,6 +135,30 @@ export default function AuctionsPage() {
         {!isLoading && !error && (
           <section>
             <AuctionGrid auctions={filteredAndSortedAuctions} viewMode={viewMode} />
+            
+            {/* Sentinel para infinite scroll - cuando es visible, carga más */}
+            {hasMore && (
+              <div 
+                ref={sentinelRef}
+                className="flex justify-center py-8"
+              >
+                {isLoadingMore && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <span className="text-gray-400 text-sm">Cargando más subastas...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mensaje cuando no hay más subastas */}
+            {!hasMore && auctions.length > 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-sm">
+                  Has visto todas las subastas disponibles
+                </p>
+              </div>
+            )}
           </section>
         )}
       </main>

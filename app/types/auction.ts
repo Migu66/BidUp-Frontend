@@ -47,6 +47,16 @@ export interface ApiResponse<T> {
   errors?: string[];
 }
 
+// Respuesta paginada del backend
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T;
+  totalCount: number;
+  hasMore: boolean;
+  message: string;
+  errors?: string[];
+}
+
 // Tipos para notificaciones en tiempo real (SignalR)
 export interface BidNotificationDto {
   auctionId: string;

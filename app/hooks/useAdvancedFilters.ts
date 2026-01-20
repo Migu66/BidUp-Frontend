@@ -20,6 +20,11 @@ export function useAdvancedFilters(auctions: AuctionDto[]) {
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredAndSortedAuctions = useMemo(() => {
+    // Protección contra undefined/null
+    if (!auctions || !Array.isArray(auctions)) {
+      return [];
+    }
+    
     let result = [...auctions];
 
     // Filtrar por precio

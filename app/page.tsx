@@ -1,22 +1,34 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import type { AuctionDto, CategoryDto } from "@/app/types";
+import type { CategoryDto } from "@/app/types";
 import { Header, Footer, HeroBanner, RegisterCTA } from "@/app/components/layout";
 import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
-import { getActiveAuctions, getCategories, getAuctionsByCategory } from "@/app/lib/api";
+import { getCategories } from "@/app/lib/api";
 import { useAuth } from "@/app/context";
 import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
+import { useInfiniteAuctions } from "@/app/hooks/useInfiniteAuctions";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
-  const [auctions, setAuctions] = useState<AuctionDto[]>([]);
   const [categories, setCategories] = useState<CategoryDto[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [isLoading, setIsLoading] = useState(true);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Hook de infinite scroll - el backend controla la paginación
+  const {
+    auctions,
+    totalCount,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    sentinelRef,
+  } = useInfiniteAuctions({
+    pageSize: 20,
+    category: selectedCategory,
+  });
 
   // Hook de filtros avanzados
   const {
@@ -41,31 +53,6 @@ export default function Home() {
     }
     loadCategories();
   }, []);
-
-  // Cargar subastas cuando cambia la categoría seleccionada
-  useEffect(() => {
-    async function loadAuctions() {
-      setIsLoading(true);
-      try {
-        let data: AuctionDto[];
-
-        if (selectedCategory === "all") {
-          data = await getActiveAuctions();
-        } else {
-          data = await getAuctionsByCategory(selectedCategory);
-        }
-
-        setAuctions(data);
-      } catch (err) {
-        console.error("Error al cargar subastas:", err);
-        setAuctions([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadAuctions();
-  }, [selectedCategory]);
 
   // Preparar categorías para el filtro (añadiendo "Todas" al inicio)
   const categoryFilters = useMemo(() => {
@@ -101,7 +88,7 @@ export default function Home() {
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <HeroBanner activeAuctions={auctions.length} connectedUsers={2400} />
+        <HeroBanner activeAuctions={totalCount} connectedUsers={2400} />
 
         <section className="mb-6 animate-fade-in relative" style={{ animationDelay: "100ms" }}>
           <CategoryFilter
@@ -132,7 +119,30 @@ export default function Home() {
               <p className="text-gray-400">Cargando subastas...</p>
             </div>
           ) : (
-            <AuctionGrid auctions={filteredAuctions} viewMode={viewMode} />
+            <>
+              <AuctionGrid auctions={filteredAuctions} viewMode={viewMode} />
+              
+              {/* Sentinel para infinite scroll */}
+              {hasMore && (
+                <div ref={sentinelRef} className="flex justify-center py-8">
+                  {isLoadingMore && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      <span className="text-gray-400 text-sm">Cargando más subastas...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Mensaje cuando no hay más subastas */}
+              {!hasMore && auctions.length > 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 text-sm">
+                    Has visto todas las subastas disponibles
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </section>
 

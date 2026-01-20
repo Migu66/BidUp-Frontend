@@ -1,4 +1,4 @@
-import type { AuctionDto, CategoryDto, ApiResponse } from '@/app/types';
+import type { AuctionDto, CategoryDto, ApiResponse, PaginatedResponse } from '@/app/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5240';
 
@@ -45,14 +45,52 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   }
 }
 
+async function handlePaginatedResponse<T>(response: Response): Promise<PaginatedResponse<T>> {
+  const contentType = response.headers.get('content-type');
+
+  try {
+    const data: PaginatedResponse<T> = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new AuctionError(
+        data.message || 'Error en la solicitud',
+        data.errors,
+        response.status
+      );
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof AuctionError) {
+      throw error;
+    }
+
+    throw new AuctionError(
+      `El servidor respondió con estado ${response.status} pero no devolvió JSON válido.`,
+      [
+        `Status: ${response.status} ${response.statusText}`,
+        `Content-Type: ${contentType || 'no especificado'}`,
+      ],
+      response.status
+    );
+  }
+}
+
+/** Resultado de una consulta paginada */
+export interface PaginatedResult<T> {
+  data: T[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 /**
- * Obtiene las subastas activas del backend
+ * Obtiene las subastas activas del backend con paginación
  * Endpoint: GET /api/Auctions
  */
 export async function getActiveAuctions(
   page: number = 1,
   pageSize: number = 20
-): Promise<AuctionDto[]> {
+): Promise<PaginatedResult<AuctionDto>> {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -66,9 +104,13 @@ export async function getActiveAuctions(
       },
     });
 
-    const result = await handleResponse<AuctionDto[]>(response);
+    const result = await handlePaginatedResponse<AuctionDto[]>(response);
 
-    return result.data ?? [];
+    return {
+      data: result.data ?? [],
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
+    };
   } catch (error) {
     if (error instanceof AuctionError) {
       throw error;
@@ -112,14 +154,14 @@ export async function getAuctionById(id: string): Promise<AuctionDto> {
 }
 
 /**
- * Obtiene subastas por categoría
+ * Obtiene subastas por categoría con paginación
  * Endpoint: GET /api/Auctions/category/{categoryId}
  */
 export async function getAuctionsByCategory(
   categoryId: string,
   page: number = 1,
   pageSize: number = 20
-): Promise<AuctionDto[]> {
+): Promise<PaginatedResult<AuctionDto>> {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -136,9 +178,13 @@ export async function getAuctionsByCategory(
       }
     );
 
-    const result = await handleResponse<AuctionDto[]>(response);
+    const result = await handlePaginatedResponse<AuctionDto[]>(response);
 
-    return result.data ?? [];
+    return {
+      data: result.data ?? [],
+      totalCount: result.totalCount,
+      hasMore: result.hasMore,
+    };
   } catch (error) {
     if (error instanceof AuctionError) {
       throw error;
