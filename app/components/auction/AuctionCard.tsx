@@ -7,6 +7,7 @@ import { ClockIcon, GavelIcon, FireIcon } from "@/app/components/ui";
 interface AuctionCardProps {
   auction: AuctionDto;
   index: number;
+  viewMode?: "grid" | "list";
 }
 
 /**
@@ -16,11 +17,75 @@ function isHotAuction(totalBids: number): boolean {
   return totalBids >= 20;
 }
 
-export function AuctionCard({ auction, index }: AuctionCardProps) {
+export function AuctionCard({ auction, index, viewMode = "grid" }: AuctionCardProps) {
   const timeDisplay = formatTimeRemaining(auction.timeRemaining);
   const isEnding = isEndingVerySoon(auction.timeRemaining);
   const isHot = isHotAuction(auction.totalBids);
 
+  // Vista de lista compacta
+  if (viewMode === "list") {
+    return (
+      <Link
+        href={`/auctions/${auction.id}`}
+        className="group relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 hover:border-primary/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 opacity-0 animate-slide-up"
+        style={{ animationDelay: `${index * 50}ms`, animationFillMode: "forwards" }}
+      >
+        <div className="flex items-center gap-4 p-4">
+          {/* Info principal */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-white group-hover:text-primary transition-colors truncate">
+                {auction.title}
+              </h3>
+              <span className="px-2 py-0.5 bg-gray-800 text-xs font-medium text-gray-400 rounded-full shrink-0">
+                {auction.categoryName}
+              </span>
+              {isHot && (
+                <span className="px-2 py-0.5 bg-orange-500/90 text-xs font-bold text-white rounded-full flex items-center gap-1 shrink-0">
+                  <FireIcon className="w-3 h-3" />
+                  Hot
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-400 truncate">
+              {auction.description}
+            </p>
+          </div>
+
+          {/* Precio */}
+          <div className="text-center shrink-0">
+            <p className="text-xs text-gray-500 mb-0.5">Puja actual</p>
+            <p className="text-lg font-bold text-white">
+              {formatCurrency(auction.currentPrice)}
+            </p>
+          </div>
+
+          {/* Pujas */}
+          <div className="text-center shrink-0 w-16">
+            <p className="text-xs text-gray-500 mb-0.5">Pujas</p>
+            <p className="text-sm font-semibold text-primary">{auction.totalBids}</p>
+          </div>
+
+          {/* Timer */}
+          <div
+            className={`px-3 py-1.5 backdrop-blur-sm text-xs font-medium rounded-full flex items-center gap-1.5 shrink-0 ${
+              isEnding
+                ? "bg-red-500/90 text-white animate-pulse-soft"
+                : "bg-gray-800 text-gray-300"
+            }`}
+          >
+            <ClockIcon className="w-3.5 h-3.5" />
+            {timeDisplay}
+          </div>
+        </div>
+
+        {/* Hover effect */}
+        <div className="absolute inset-0 border-2 border-primary/0 group-hover:border-primary/50 rounded-xl transition-colors pointer-events-none" />
+      </Link>
+    );
+  }
+
+  // Vista de grid (original)
   return (
     <Link
       href={`/auctions/${auction.id}`}

@@ -33,7 +33,7 @@ export function AuctionGrid({ auctions, viewMode }: AuctionGridProps) {
       }`}
     >
       {auctions.map((auction, index) => (
-        <AuctionCard key={auction.id} auction={auction} index={index} />
+        <AuctionCard key={auction.id} auction={auction} index={index} viewMode={viewMode} />
       ))}
     </div>
   );
