@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { CategoryDto } from "@/app/types";
 import { Header, Footer, HeroBanner, RegisterCTA } from "@/app/components/layout";
-import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
+import { AuctionGrid, CategoryFilter, AdvancedFilterPanel, AuctionGridSkeleton } from "@/app/components/auction";
 import { getCategories } from "@/app/lib/api";
 import { useAuth } from "@/app/context";
 import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
@@ -114,25 +114,18 @@ export default function Home() {
 
         <section>
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-              <p className="text-gray-400">Cargando subastas...</p>
-            </div>
+            <AuctionGridSkeleton count={12} viewMode={viewMode} />
           ) : (
             <>
-              <AuctionGrid auctions={filteredAuctions} viewMode={viewMode} />
+              <AuctionGrid 
+                auctions={filteredAuctions} 
+                viewMode={viewMode}
+                skeletonCount={hasMore ? Math.max(8, 12 - filteredAuctions.length) : 0}
+                showEmptyState={!hasMore}
+              />
               
-              {/* Sentinel para infinite scroll */}
-              {hasMore && (
-                <div ref={sentinelRef} className="flex justify-center py-8">
-                  {isLoadingMore && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-gray-400 text-sm">Cargando más subastas...</span>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Sentinel invisible para detectar scroll */}
+              {hasMore && <div ref={sentinelRef} className="h-1" />}
 
               {/* Mensaje cuando no hay más subastas */}
               {!hasMore && auctions.length > 0 && (

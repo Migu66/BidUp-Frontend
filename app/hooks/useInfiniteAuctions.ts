@@ -63,7 +63,12 @@ export function useInfiniteAuctions({
       if (isInitial) {
         setAuctions(result.data);
       } else {
-        setAuctions(prev => [...prev, ...result.data]);
+        // Filtrar duplicados al añadir nuevas subastas
+        setAuctions(prev => {
+          const existingIds = new Set(prev.map(a => a.id));
+          const newAuctions = result.data.filter(a => !existingIds.has(a.id));
+          return [...prev, ...newAuctions];
+        });
       }
     } catch (err) {
       const errorMessage = err instanceof Error 
@@ -126,7 +131,7 @@ export function useInfiniteAuctions({
       },
       {
         root: null,
-        rootMargin: '200px', // Cargar antes de llegar al final
+        rootMargin: '600px', // Cargar con más anticipación para UX fluida
         threshold: 0,
       }
     );

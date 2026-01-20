@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { CategoryDto } from "@/app/types";
-import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
+import { AuctionGrid, CategoryFilter, AdvancedFilterPanel, AuctionGridSkeleton } from "@/app/components/auction";
 import { getCategories } from "@/app/lib/api";
 import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
 import { useInfiniteAuctions } from "@/app/hooks/useInfiniteAuctions";
@@ -106,10 +106,7 @@ export default function AuctionsPage() {
 
         {/* Estado de carga */}
         {isLoading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-            <p className="text-gray-400">Cargando subastas...</p>
-          </div>
+          <AuctionGridSkeleton count={8} viewMode={viewMode} />
         )}
 
         {/* Error */}
@@ -134,22 +131,15 @@ export default function AuctionsPage() {
         {/* Grid de subastas */}
         {!isLoading && !error && (
           <section>
-            <AuctionGrid auctions={filteredAndSortedAuctions} viewMode={viewMode} />
+            <AuctionGrid 
+              auctions={filteredAndSortedAuctions} 
+              viewMode={viewMode}
+              skeletonCount={hasMore ? Math.max(8, 12 - filteredAndSortedAuctions.length) : 0}
+              showEmptyState={!hasMore}
+            />
             
-            {/* Sentinel para infinite scroll - cuando es visible, carga más */}
-            {hasMore && (
-              <div 
-                ref={sentinelRef}
-                className="flex justify-center py-8"
-              >
-                {isLoadingMore && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                    <span className="text-gray-400 text-sm">Cargando más subastas...</span>
-                  </div>
-                )}
-              </div>
-            )}
+            {/* Sentinel invisible para detectar scroll */}
+            {hasMore && <div ref={sentinelRef} className="h-1" />}
 
             {/* Mensaje cuando no hay más subastas */}
             {!hasMore && auctions.length > 0 && (

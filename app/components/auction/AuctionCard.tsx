@@ -8,6 +8,7 @@ interface AuctionCardProps {
   auction: AuctionDto;
   index: number;
   viewMode?: "grid" | "list";
+  skipAnimation?: boolean; // Para infinite scroll, sin delay
 }
 
 /**
@@ -17,18 +18,26 @@ function isHotAuction(totalBids: number): boolean {
   return totalBids >= 20;
 }
 
-export function AuctionCard({ auction, index, viewMode = "grid" }: AuctionCardProps) {
+export function AuctionCard({ auction, index, viewMode = "grid", skipAnimation = false }: AuctionCardProps) {
   const timeDisplay = formatTimeRemaining(auction.timeRemaining);
   const isEnding = isEndingVerySoon(auction.timeRemaining);
   const isHot = isHotAuction(auction.totalBids);
+
+  // Clases de animación - sin delay para infinite scroll
+  const animationClass = skipAnimation 
+    ? "animate-fade-in" 
+    : "opacity-0 animate-slide-up";
+  const animationStyle = skipAnimation 
+    ? {} 
+    : { animationDelay: `${Math.min(index, 8) * 50}ms`, animationFillMode: "forwards" as const };
 
   // Vista de lista compacta
   if (viewMode === "list") {
     return (
       <Link
         href={`/auctions/${auction.id}`}
-        className="group relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 hover:border-primary/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 opacity-0 animate-slide-up"
-        style={{ animationDelay: `${index * 50}ms`, animationFillMode: "forwards" }}
+        className={`group relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 hover:border-primary/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 ${animationClass}`}
+        style={animationStyle}
       >
         <div className="flex items-center gap-4 p-4">
           {/* Info principal */}
@@ -89,8 +98,8 @@ export function AuctionCard({ auction, index, viewMode = "grid" }: AuctionCardPr
   return (
     <Link
       href={`/auctions/${auction.id}`}
-      className="group relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 hover:border-primary/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 opacity-0 animate-slide-up"
-      style={{ animationDelay: `${index * 75}ms`, animationFillMode: "forwards" }}
+      className={`group relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 hover:border-primary/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 ${animationClass}`}
+      style={animationStyle}
     >
       {/* Imagen */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
