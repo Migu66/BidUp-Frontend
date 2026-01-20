@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { AuctionDto, CategoryDto } from "@/app/types";
-import { AuctionGrid, CategoryFilter } from "@/app/components/auction";
+import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
 import { getActiveAuctions, getCategories, getAuctionsByCategory } from "@/app/lib/api";
+import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
 
 export default function AuctionsPage() {
   const [auctions, setAuctions] = useState<AuctionDto[]>([]);
@@ -12,6 +13,18 @@ export default function AuctionsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Hook de filtros avanzados
+  const {
+    filters,
+    updateFilter,
+    resetFilters,
+    filteredAndSortedAuctions,
+    hasActiveFilters,
+    isOpen: isFilterPanelOpen,
+    setIsOpen: setFilterPanelOpen,
+  } = useAdvancedFilters(auctions);
 
   // Cargar categorías al montar
   useEffect(() => {
@@ -84,13 +97,25 @@ export default function AuctionsPage() {
         </div>
 
         {/* Filtros */}
-        <section className="mb-6">
+        <section className="mb-6 relative">
           <CategoryFilter
             categories={categoryFilters}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onFilterClick={() => setFilterPanelOpen(!isFilterPanelOpen)}
+            hasActiveFilters={hasActiveFilters}
+            filterButtonRef={filterButtonRef}
+          />
+          <AdvancedFilterPanel
+            isOpen={isFilterPanelOpen}
+            onClose={() => setFilterPanelOpen(false)}
+            filters={filters}
+            onUpdateFilter={updateFilter}
+            onReset={resetFilters}
+            hasActiveFilters={hasActiveFilters}
+            buttonRef={filterButtonRef}
           />
         </section>
 
@@ -124,7 +149,7 @@ export default function AuctionsPage() {
         {/* Grid de subastas */}
         {!isLoading && !error && (
           <section>
-            <AuctionGrid auctions={auctions} viewMode={viewMode} />
+            <AuctionGrid auctions={filteredAndSortedAuctions} viewMode={viewMode} />
           </section>
         )}
       </main>

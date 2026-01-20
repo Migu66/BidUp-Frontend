@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { FilterIcon, GridIcon, ListIcon } from "@/app/components/ui";
 
 interface CategoryFilterProps {
@@ -12,6 +13,9 @@ interface CategoryFilterProps {
   onSelectCategory: (categoryId: string) => void;
   viewMode: "grid" | "list";
   onViewModeChange: (mode: "grid" | "list") => void;
+  onFilterClick?: () => void;
+  hasActiveFilters?: boolean;
+  filterButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export function CategoryFilter({
@@ -20,6 +24,9 @@ export function CategoryFilter({
   onSelectCategory,
   viewMode,
   onViewModeChange,
+  onFilterClick,
+  hasActiveFilters = false,
+  filterButtonRef,
 }: CategoryFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -49,12 +56,28 @@ export function CategoryFilter({
 
       {/* Controles de vista */}
       <div className="flex items-center gap-2">
-        <button 
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
-          aria-label="Filtros avanzados"
-        >
-          <FilterIcon />
-        </button>
+        {onFilterClick && (
+          <div className="relative">
+            <button
+              ref={filterButtonRef}
+              onClick={() => {
+                console.log("Filtro clickeado");
+                onFilterClick();
+              }}
+              className={`p-2 rounded-lg transition-colors relative ${
+                hasActiveFilters
+                  ? "text-primary bg-primary/10 hover:bg-primary/20"
+                  : "text-gray-400 hover:text-white hover:bg-gray-800"
+              }`}
+              aria-label="Filtros avanzados"
+            >
+              <FilterIcon />
+              {hasActiveFilters && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+              )}
+            </button>
+          </div>
+        )}
         <div className="flex bg-gray-900/50 rounded-lg p-1">
           <button
             onClick={() => onViewModeChange("grid")}

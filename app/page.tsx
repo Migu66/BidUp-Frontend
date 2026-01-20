@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import type { AuctionDto, CategoryDto } from "@/app/types";
 import { Header, Footer, HeroBanner, RegisterCTA } from "@/app/components/layout";
-import { AuctionGrid, CategoryFilter } from "@/app/components/auction";
+import { AuctionGrid, CategoryFilter, AdvancedFilterPanel } from "@/app/components/auction";
 import { getActiveAuctions, getCategories, getAuctionsByCategory } from "@/app/lib/api";
 import { useAuth } from "@/app/context";
+import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -15,6 +16,18 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isLoading, setIsLoading] = useState(true);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Hook de filtros avanzados
+  const {
+    filters,
+    updateFilter,
+    resetFilters,
+    filteredAndSortedAuctions,
+    hasActiveFilters,
+    isOpen: isFilterPanelOpen,
+    setIsOpen: setFilterPanelOpen,
+  } = useAdvancedFilters(auctions);
 
   // Cargar categorías al montar
   useEffect(() => {
@@ -67,17 +80,21 @@ export default function Home() {
     ];
   }, [categories]);
 
-  // Filtrar subastas por búsqueda local
+  // Filtrar subastas por búsqueda local y aplicar filtros avanzados
   const filteredAuctions = useMemo(() => {
-    if (searchQuery === "") return auctions;
-
-    return auctions.filter((auction) => {
-      return (
-        auction.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        auction.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    });
-  }, [auctions, searchQuery]);
+    let result = filteredAndSortedAuctions;
+    
+    if (searchQuery !== "") {
+      result = result.filter((auction) => {
+        return (
+          auction.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          auction.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      });
+    }
+    
+    return result;
+  }, [filteredAndSortedAuctions, searchQuery]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
@@ -86,13 +103,25 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <HeroBanner activeAuctions={auctions.length} connectedUsers={2400} />
 
-        <section className="mb-6 animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <section className="mb-6 animate-fade-in relative" style={{ animationDelay: "100ms" }}>
           <CategoryFilter
             categories={categoryFilters}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onFilterClick={() => setFilterPanelOpen(!isFilterPanelOpen)}
+            hasActiveFilters={hasActiveFilters}
+            filterButtonRef={filterButtonRef}
+          />
+          <AdvancedFilterPanel
+            isOpen={isFilterPanelOpen}
+            onClose={() => setFilterPanelOpen(false)}
+            filters={filters}
+            onUpdateFilter={updateFilter}
+            onReset={resetFilters}
+            hasActiveFilters={hasActiveFilters}
+            buttonRef={filterButtonRef}
           />
         </section>
 
