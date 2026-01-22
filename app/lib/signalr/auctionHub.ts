@@ -3,6 +3,7 @@ import type {
   BidNotificationDto,
   AuctionStatusNotificationDto,
   AuctionTimerSyncDto,
+  BidDto,
 } from "@/app/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5240";
@@ -17,6 +18,8 @@ export type AuctionHubEvents = {
     timestamp: string;
   }) => void;
   onAuctionEnded: (data: AuctionStatusNotificationDto) => void;
+  onBidAccepted: (data: BidDto) => void;
+  onBidError: (error: string) => void;
 };
 
 class AuctionHubConnection {
@@ -102,6 +105,18 @@ class AuctionHubConnection {
       console.log("[SignalR] AuctionEnded recibido:", data);
       this.listeners.onAuctionEnded?.(data);
     });
+
+    // Evento: Puja aceptada (respuesta a PlaceBid)
+    this.connection.on("BidAccepted", (data: BidDto) => {
+      console.log("[SignalR] BidAccepted recibido:", data);
+      this.listeners.onBidAccepted?.(data);
+    });
+
+    // Evento: Error en puja (respuesta a PlaceBid)
+    this.connection.on("BidError", (error: string) => {
+      console.log("[SignalR] BidError recibido:", error);
+      this.listeners.onBidError?.(error);
+    });
   }
 
   /**
@@ -182,10 +197,41 @@ class AuctionHubConnection {
   }
 
   /**
+   * Coloca una puja a través de SignalR.
+   * Usa la conexión WebSocket existente para mayor eficiencia.
+   * Responde con BidAccepted o BidError vía eventos.
+   */
+  async placeBid(auctionId: string, amount: number): Promise<void> {
+    if (
+      !this.connection ||
+      this.connection.state !== signalR.HubConnectionState.Connected
+    ) {
+      // Si no está conectado, disparar error directamente
+      this.listeners.onBidError?.("No hay conexión con el servidor. Inténtalo de nuevo.");
+      return;
+    }
+
+    try {
+      // El backend espera (string auctionId, decimal amount)
+      await this.connection.invoke("PlaceBid", auctionId, amount);
+    } catch (err) {
+      console.error("[SignalR] Error al invocar PlaceBid:", err);
+      this.listeners.onBidError?.("Error al enviar la puja. Inténtalo de nuevo.");
+    }
+  }
+
+  /**
    * Registra listeners para los eventos del hub
    */
   on<K extends keyof AuctionHubEvents>(event: K, callback: AuctionHubEvents[K]): void {
     this.listeners[event] = callback as AuctionHubEvents[K];
+  }
+
+  /**
+   * Establece múltiples listeners a la vez (merge, no reemplaza)
+   */
+  setListeners(newListeners: Partial<AuctionHubEvents>): void {
+    this.listeners = { ...this.listeners, ...newListeners };
   }
 
   /**

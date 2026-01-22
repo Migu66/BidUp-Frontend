@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { placeBid, BidError } from "@/app/lib/api/bids";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { auctionHub } from "@/app/lib/signalr/auctionHub";
 import type { BidDto } from "@/app/types";
 import { useAuth } from "@/app/context";
 
@@ -24,8 +24,13 @@ interface UsePlaceBidReturn {
   isValidBid: boolean;
 }
 
+// Contador global para identificar pujas únicas
+let bidRequestId = 0;
+
 /**
- * Hook para manejar la lógica de realizar pujas
+ * Hook para manejar la lógica de realizar pujas vía SignalR.
+ * Sin cooldown - el backend controla el rate limiting.
+ * Usa la conexión WebSocket existente para máxima eficiencia.
  */
 export function usePlaceBid({
   auctionId,
@@ -34,10 +39,22 @@ export function usePlaceBid({
   onSuccess,
   onError,
 }: UsePlaceBidOptions): UsePlaceBidReturn {
-  const { isAuthenticated, getValidToken } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [bidAmount, setBidAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Ref para manejar callback pendiente y evitar race conditions
+  const pendingBidIdRef = useRef<number | null>(null);
+  
+  // Refs para callbacks actuales (evitan closure stale)
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  }, [onSuccess, onError]);
 
   // Calcular la puja mínima siguiente
   const minNextBid = currentPrice + minBidIncrement;
@@ -46,86 +63,90 @@ export function usePlaceBid({
   const numericBid = parseFloat(bidAmount) || 0;
   const isValidBid = numericBid >= minNextBid;
 
+  // Registrar listeners para respuestas de pujas
+  useEffect(() => {
+    const handleBidAccepted = (bid: BidDto) => {
+      // Solo procesar si tenemos una puja pendiente
+      if (pendingBidIdRef.current !== null) {
+        pendingBidIdRef.current = null;
+        setIsSubmitting(false);
+        setError(null);
+        setBidAmount("");
+        onSuccessRef.current?.(bid);
+      }
+    };
+
+    const handleBidError = (errorMessage: string) => {
+      // Solo procesar si tenemos una puja pendiente
+      if (pendingBidIdRef.current !== null) {
+        pendingBidIdRef.current = null;
+        setIsSubmitting(false);
+        setError(errorMessage);
+        onErrorRef.current?.(errorMessage);
+      }
+    };
+
+    // Suscribirse a los eventos de puja
+    auctionHub.on("onBidAccepted", handleBidAccepted);
+    auctionHub.on("onBidError", handleBidError);
+
+    return () => {
+      // Cancelar puja pendiente al desmontar
+      pendingBidIdRef.current = null;
+    };
+  }, []);
+
+  // Función interna para ejecutar la puja vía SignalR
+  const executeBid = useCallback(
+    async (amount: number) => {
+      if (!isAuthenticated) {
+        setError("Debes iniciar sesión para pujar");
+        onErrorRef.current?.("Debes iniciar sesión para pujar");
+        return;
+      }
+
+      // Evitar múltiples pujas simultáneas
+      if (isSubmitting) {
+        return;
+      }
+
+      setIsSubmitting(true);
+      setError(null);
+
+      // Asignar ID único a esta puja
+      const currentBidId = ++bidRequestId;
+      pendingBidIdRef.current = currentBidId;
+
+      // Enviar puja vía SignalR (usa WebSocket existente)
+      await auctionHub.placeBid(auctionId, amount);
+
+      // Timeout de seguridad: si no recibimos respuesta en 10s, fallar
+      setTimeout(() => {
+        if (pendingBidIdRef.current === currentBidId) {
+          pendingBidIdRef.current = null;
+          setIsSubmitting(false);
+          setError("Tiempo de espera agotado. Inténtalo de nuevo.");
+          onErrorRef.current?.("Tiempo de espera agotado. Inténtalo de nuevo.");
+        }
+      }, 10000);
+    },
+    [auctionId, isAuthenticated, isSubmitting]
+  );
+
   // Realizar puja con cantidad específica
   const submitBid = useCallback(async () => {
-    if (!isAuthenticated) {
-      setError("Debes iniciar sesión para pujar");
-      onError?.("Debes iniciar sesión para pujar");
-      return;
-    }
-
-    // Obtener token válido (refresca automáticamente si es necesario)
-    const token = await getValidToken();
-    if (!token) {
-      setError("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
-      onError?.("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
-      return;
-    }
-
     if (!isValidBid) {
       setError(`La puja mínima es ${minNextBid.toFixed(2)} €`);
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const bid = await placeBid(auctionId, numericBid, token);
-      setBidAmount("");
-      onSuccess?.(bid);
-    } catch (err) {
-      const message = err instanceof BidError 
-        ? err.message 
-        : "Error al realizar la puja";
-      setError(message);
-      onError?.(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    auctionId,
-    numericBid,
-    isValidBid,
-    minNextBid,
-    getValidToken,
-    isAuthenticated,
-    onSuccess,
-    onError,
-  ]);
+    await executeBid(numericBid);
+  }, [numericBid, isValidBid, minNextBid, executeBid]);
 
   // Puja rápida con el incremento mínimo
   const quickBid = useCallback(async () => {
-    if (!isAuthenticated) {
-      setError("Debes iniciar sesión para pujar");
-      onError?.("Debes iniciar sesión para pujar");
-      return;
-    }
-
-    // Obtener token válido (refresca automáticamente si es necesario)
-    const token = await getValidToken();
-    if (!token) {
-      setError("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
-      onError?.("Tu sesión ha expirado. Por favor, vuelve a iniciar sesión.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      const bid = await placeBid(auctionId, minNextBid, token);
-      onSuccess?.(bid);
-    } catch (err) {
-      const message = err instanceof BidError 
-        ? err.message 
-        : "Error al realizar la puja";
-      setError(message);
-      onError?.(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [auctionId, minNextBid, getValidToken, isAuthenticated, onSuccess, onError]);
+    await executeBid(minNextBid);
+  }, [minNextBid, executeBid]);
 
   return {
     bidAmount,
