@@ -41,8 +41,12 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
       };
     });
     
-    // Agregar la puja al historial
-    setBids((prev) => [data.bid, ...prev]);
+    // Agregar la puja al historial solo si no existe ya
+    setBids((prev) => {
+      const exists = prev.some((b) => b.id === data.bid.id);
+      if (exists) return prev;
+      return [data.bid, ...prev];
+    });
   }, []);
 
   const handleAuctionUpdated = useCallback((data: AuctionStatusNotificationDto) => {
@@ -116,8 +120,12 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
           latestBid: bid,
         };
       });
-      // Agregar la puja al historial
-      setBids((prev) => [bid, ...prev]);
+      // Agregar la puja al historial solo si no existe ya
+      setBids((prev) => {
+        const exists = prev.some((b) => b.id === bid.id);
+        if (exists) return prev;
+        return [bid, ...prev];
+      });
       // Mostrar mensaje de éxito
       setBidSuccess(true);
       setTimeout(() => setBidSuccess(false), 3000);
