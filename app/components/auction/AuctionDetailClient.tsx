@@ -160,6 +160,29 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
     loadAuctionData();
   }, [auctionId]);
 
+  // Polling para usuarios no autenticados (no tienen SignalR)
+  // Actualiza cada 5 segundos para mantener la info sincronizada
+  useEffect(() => {
+    // Solo hacer polling si NO está conectado a SignalR
+    if (isConnected || isLoading) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const [auctionData, bidsData] = await Promise.all([
+          getAuctionById(auctionId),
+          getAuctionBids(auctionId),
+        ]);
+        
+        setAuction(auctionData);
+        setBids(bidsData);
+      } catch {
+        // Silenciar errores de polling
+      }
+    }, 5000); // Cada 5 segundos
+
+    return () => clearInterval(pollInterval);
+  }, [auctionId, isConnected, isLoading]);
+
   // Loading state
   if (isLoading) {
     return (
