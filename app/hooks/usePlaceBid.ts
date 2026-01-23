@@ -60,12 +60,14 @@ export function usePlaceBid({
   const minNextBid = currentPrice + minBidIncrement;
 
   // Validar si la puja actual es válida
+  // Debe ser MAYOR que el precio actual para evitar conflictos de redondeo
   const numericBid = parseFloat(bidAmount) || 0;
-  const isValidBid = numericBid >= minNextBid;
+  const isValidBid = numericBid > currentPrice && numericBid >= minNextBid;
 
   // Registrar listeners para respuestas de pujas
   useEffect(() => {
     const handleBidAccepted = (bid: BidDto) => {
+      console.log("[usePlaceBid] BidAccepted recibido:", bid);
       // Solo procesar si tenemos una puja pendiente
       if (pendingBidIdRef.current !== null) {
         pendingBidIdRef.current = null;
@@ -77,6 +79,7 @@ export function usePlaceBid({
     };
 
     const handleBidError = (errorMessage: string) => {
+      console.log("[usePlaceBid] BidError recibido:", errorMessage);
       // Solo procesar si tenemos una puja pendiente
       if (pendingBidIdRef.current !== null) {
         pendingBidIdRef.current = null;
@@ -86,15 +89,42 @@ export function usePlaceBid({
       }
     };
 
-    // Suscribirse a los eventos de puja
-    auctionHub.on("onBidAccepted", handleBidAccepted);
-    auctionHub.on("onBidError", handleBidError);
+    const handleNewBid = (data: { auctionId: string; bid: BidDto }) => {
+      console.log("[usePlaceBid] onNewBid recibido:", data);
+      // Si detectamos que OTRO usuario pujó mientras teníamos una puja pendiente,
+      // cancelar nuestro intento porque el precio cambió y nuestra puja ya no es válida
+      if (pendingBidIdRef.current !== null && data.auctionId.toLowerCase() === auctionId.toLowerCase()) {
+        // Verificar si la puja es de otro usuario (el backend debería enviar bidderId)
+        // Si es nuestra propia puja, ya la manejará handleBidAccepted
+        // Por seguridad, cancelamos el estado de "procesando" para evitar que se quede trabado
+        const isProbablyOurBid = data.bid.amount === parseFloat(bidAmount);
+        
+        if (!isProbablyOurBid) {
+          console.log("[usePlaceBid] Otra persona pujó, cancelando nuestro intento pendiente");
+          pendingBidIdRef.current = null;
+          setIsSubmitting(false);
+          setError("Alguien más realizó una puja. Intenta de nuevo con el nuevo precio.");
+        }
+      }
+    };
+
+    // Suscribirse a los eventos de puja usando el sistema de listeners del hub
+    auctionHub.setListeners({
+      onBidAccepted: handleBidAccepted,
+      onBidError: handleBidError,
+    });
+
+    // También escuchar el evento general de nuevas pujas
+    auctionHub.on("onNewBid", handleNewBid);
 
     return () => {
-      // Cancelar puja pendiente al desmontar
+      // Limpiar listeners al desmontar
+      auctionHub.off("onBidAccepted");
+      auctionHub.off("onBidError");
+      auctionHub.off("onNewBid");
       pendingBidIdRef.current = null;
     };
-  }, []);
+  }, [auctionId, bidAmount]);
 
   // Función interna para ejecutar la puja vía SignalR
   const executeBid = useCallback(
@@ -118,6 +148,7 @@ export function usePlaceBid({
       pendingBidIdRef.current = currentBidId;
 
       // Enviar puja vía SignalR (usa WebSocket existente)
+      console.log("[usePlaceBid] Enviando puja:", { auctionId, amount, currentBidId });
       await auctionHub.placeBid(auctionId, amount);
 
       // Timeout de seguridad: si no recibimos respuesta en 10s, fallar
@@ -136,12 +167,12 @@ export function usePlaceBid({
   // Realizar puja con cantidad específica
   const submitBid = useCallback(async () => {
     if (!isValidBid) {
-      setError(`La puja mínima es ${minNextBid.toFixed(2)} €`);
+      setError(`La puja debe ser mayor a ${currentPrice.toFixed(2)} €. Puja mínima recomendada: ${minNextBid.toFixed(2)} €`);
       return;
     }
 
     await executeBid(numericBid);
-  }, [numericBid, isValidBid, minNextBid, executeBid]);
+  }, [numericBid, isValidBid, currentPrice, minNextBid, executeBid]);
 
   // Puja rápida con el incremento mínimo
   const quickBid = useCallback(async () => {
