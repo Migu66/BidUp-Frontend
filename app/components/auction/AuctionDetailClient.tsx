@@ -81,6 +81,9 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
   // Verificar si el usuario es el propietario de la subasta
   const isOwner = isAuthenticated && user?.userId === auction?.sellerId;
 
+  // Verificar si el usuario tiene la puja más alta actualmente
+  const isWinningBidder = isAuthenticated && auction?.latestBid?.bidderId === user?.userId;
+
   // Función para recargar datos de la subasta
   const refreshAuctionData = useCallback(async () => {
     try {
@@ -398,8 +401,15 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {/* Mensaje de que vas ganando */}
+                    {isWinningBidder && (
+                      <div className="p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm">
+                        🎉 ¡Vas ganando! Tu puja de <span className="font-semibold">{formatCurrency(auction.latestBid?.amount ?? 0)}</span> es la más alta
+                      </div>
+                    )}
+
                     {/* Mensaje de éxito */}
-                    {bidSuccess && (
+                    {bidSuccess && !isWinningBidder && (
                       <div className="p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 text-sm">
                         ¡Puja realizada con éxito!
                       </div>
@@ -415,11 +425,13 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
                     {/* Puja rápida */}
                     <button
                       onClick={quickBid}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isWinningBidder}
                       className="w-full py-4 bg-primary hover:bg-primary/90 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold text-lg rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                       {isSubmitting ? (
                         <span className="animate-pulse">Procesando...</span>
+                      ) : isWinningBidder ? (
+                        <span>Ya tienes la puja más alta</span>
                       ) : (
                         <>
                           <GavelIcon className="w-5 h-5" />
@@ -440,12 +452,13 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
                             placeholder={minNextBid.toFixed(2)}
                             min={minNextBid}
                             step={auction.minBidIncrement}
-                            className="w-full pl-8 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
+                            disabled={isWinningBidder}
+                            className="w-full pl-8 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           />
                         </div>
                         <button
                           onClick={submitBid}
-                          disabled={isSubmitting || !bidAmount || !isValidBid}
+                          disabled={isSubmitting || isWinningBidder || !bidAmount || !isValidBid}
                           className="px-6 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                         >
                           Pujar
