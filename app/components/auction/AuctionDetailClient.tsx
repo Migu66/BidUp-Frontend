@@ -363,10 +363,6 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
                     {formatCurrency(auction.currentPrice)}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400 mb-1">Pujas totales</p>
-                  <p className="text-2xl font-bold text-primary">{auction.totalBids}</p>
-                </div>
               </div>
 
               <div className="text-sm text-gray-500">
@@ -495,7 +491,7 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
             <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">
-                  Historial de pujas ({bids.length})
+                  Historial de pujas
                 </h2>
               </div>
 

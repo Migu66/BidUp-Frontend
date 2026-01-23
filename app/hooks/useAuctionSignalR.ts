@@ -111,7 +111,6 @@ export function useAuctionSignalR({
 
         // Unirse a la sala de la subasta
         await auctionHub.joinAuction(auctionId);
-        console.log("[Hook] Unido a la sala de subasta:", auctionId);
 
         if (isMounted) {
           setIsConnected(true);

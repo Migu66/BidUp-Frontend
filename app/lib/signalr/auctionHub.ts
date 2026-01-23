@@ -95,7 +95,6 @@ class AuctionHubConnection {
     this.connection.on(
       "JoinedAuction",
       (data: { auctionId: string; message: string; timestamp: string }) => {
-        console.log("[SignalR] JoinedAuction recibido:", data);
         this.listeners.onJoinedAuction?.(data);
       }
     );
