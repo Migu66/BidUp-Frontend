@@ -121,7 +121,6 @@ class AuctionHubConnection {
 
     // Evento: Estadísticas en tiempo real actualizadas
     this.connection.on("LiveStatsUpdated", (data: LiveStatsDto) => {
-      console.log("[SignalR] LiveStatsUpdated recibido:", data);
       this.listeners.onLiveStatsUpdated?.(data);
     });
   }

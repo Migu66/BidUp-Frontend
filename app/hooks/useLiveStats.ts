@@ -50,13 +50,11 @@ export function useLiveStats(initialStats: LiveStatsDto): UseLiveStatsReturn {
         // Escuchar evento de estadísticas globales
         auctionHub.on("onLiveStatsUpdated", (data: LiveStatsDto) => {
           if (mountedRef.current) {
-            console.log("[useLiveStats] Estadísticas actualizadas:", data);
             setStats(data);
           }
         });
 
         setIsConnected(true);
-        console.log("[useLiveStats] Conectado y escuchando estadísticas");
       } catch (error) {
         console.error("[useLiveStats] Error al conectar:", error);
         setIsConnected(false);

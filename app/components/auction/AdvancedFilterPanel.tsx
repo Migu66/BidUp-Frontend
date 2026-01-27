@@ -76,8 +76,6 @@ export function AdvancedFilterPanel({
     }
   }, [isOpen, buttonRef]);
 
-  console.log("Panel isOpen:", isOpen);
-
   if (!isOpen || !mounted) return null;
 
   const panelContent = (
