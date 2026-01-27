@@ -225,7 +225,7 @@ export function CreateAuctionForm() {
         <Button
           type="button"
           variant="secondary"
-          onClick={() => router.push("/auctions")}
+          onClick={() => router.push("/")}
           disabled={isSubmitting}
           className="flex-1"
         >
