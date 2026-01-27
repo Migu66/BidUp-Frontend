@@ -76,7 +76,17 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
           {/* Auth section */}
           <div className="flex items-center gap-2 shrink-0">
             {isAuthenticated ? (
-              <div className="relative" ref={dropdownRef}>
+              <>
+                <Link
+                  href="/auctions/create"
+                  className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-dark text-white rounded-xl transition-colors shadow-lg shadow-primary/25 hidden sm:flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Crear Subasta
+                </Link>
+                <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-semibold shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow"
@@ -101,6 +111,7 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               <>
                 <Link

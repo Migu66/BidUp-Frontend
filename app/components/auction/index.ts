@@ -4,3 +4,4 @@ export * from "./AuctionGrid";
 export * from "./CategoryFilter";
 export * from "./AdvancedFilterPanel";
 export * from "./AuctionDetailClient";
+export * from "./CreateAuctionForm";

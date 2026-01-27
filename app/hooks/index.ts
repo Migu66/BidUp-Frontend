@@ -5,3 +5,4 @@ export * from "./useLoginForm";
 export * from "./useRegisterForm";
 export * from "./useAuctionSignalR";
 export * from "./usePlaceBid";
+export * from "./useCreateAuction";

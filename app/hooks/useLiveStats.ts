@@ -56,7 +56,7 @@ export function useLiveStats(initialStats: LiveStatsDto): UseLiveStatsReturn {
 
         setIsConnected(true);
       } catch (error) {
-        console.error("[useLiveStats] Error al conectar:", error);
+        // Silenciar completamente - el indicador visual muestra el estado
         setIsConnected(false);
       }
     };

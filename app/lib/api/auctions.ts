@@ -223,4 +223,53 @@ export async function getCategories(): Promise<CategoryDto[]> {
   }
 }
 
+/**
+ * Crea una nueva subasta
+ * Endpoint: POST /api/Auctions
+ */
+export async function createAuction(data: {
+  title: string;
+  description: string;
+  categoryId: string;
+  startingPrice: number;
+  minBidIncrement: number;
+  startTime: string;
+  endTime: string;
+  imageUrl: string;
+}): Promise<ApiResponse<AuctionDto>> {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      throw new AuctionError('Debes iniciar sesión para crear una subasta');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/Auctions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    return await handleResponse<AuctionDto>(response);
+  } catch (error) {
+    if (error instanceof AuctionError) {
+      throw error;
+    }
+    throw new AuctionError(
+      'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.',
+      [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+    );
+  }
+}
+
+export const auctionApi = {
+  getActiveAuctions,
+  getAuctionById,
+  getAuctionsByCategory,
+  getCategories,
+  createAuction,
+};
+
 export { AuctionError };

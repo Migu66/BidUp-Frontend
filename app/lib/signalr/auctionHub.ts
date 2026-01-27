@@ -47,6 +47,8 @@ class AuctionHubConnection {
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/hubs/auction`, {
         accessTokenFactory: () => accessToken,
+        skipNegotiation: false,
+        transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.LongPolling,
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
@@ -58,15 +60,31 @@ class AuctionHubConnection {
           return delay;
         },
       })
-      // Usar nivel None para no mostrar errores de auth en consola
+      // Silenciar completamente los logs de SignalR
       .configureLogging(signalR.LogLevel.None)
       .build();
 
     this.setupEventHandlers();
     this.setupConnectionEvents();
 
-    // Intentar conectar - puede fallar si el token es inválido
-    await this.connection.start();
+    try {
+      // Intentar conectar - puede fallar si el backend no está disponible
+      await this.connection.start();
+    } catch (error) {
+      // Si es un error de negociación, el backend no está ejecutándose
+      if (error instanceof Error && error.message.includes("negotiation")) {
+        // En desarrollo, solo un warning discreto
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`[SignalR] Backend no disponible en ${API_BASE_URL}/hubs/auction`);
+        }
+        // No lanzar error para no bloquear la aplicación
+        return;
+      }
+      // Para otros errores, registrar pero no lanzar
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("[SignalR] Error de conexión:", error);
+      }
+    }
   }
 
   /**
