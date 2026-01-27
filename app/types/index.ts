@@ -1,5 +1,6 @@
 export * from "./auction";
 export * from "./category";
+export * from "./stats";
 export { 
   type RegisterRequest,
   type LoginRequest,

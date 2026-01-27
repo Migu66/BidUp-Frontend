@@ -8,6 +8,7 @@ import { getCategories } from "@/app/lib/api";
 import { useAuth } from "@/app/context";
 import { useAdvancedFilters } from "@/app/hooks/useAdvancedFilters";
 import { useInfiniteAuctions } from "@/app/hooks/useInfiniteAuctions";
+import { useLiveStats } from "@/app/hooks/useLiveStats";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -40,6 +41,12 @@ export default function Home() {
     isOpen: isFilterPanelOpen,
     setIsOpen: setFilterPanelOpen,
   } = useAdvancedFilters(auctions);
+
+  // Hook de estadísticas en tiempo real (usuarios conectados)
+  const { stats } = useLiveStats({
+    activeAuctions: totalCount,
+    connectedUsers: 0, // Valor por defecto hasta recibir datos del backend
+  });
 
   // Cargar categorías al montar
   useEffect(() => {
@@ -88,7 +95,10 @@ export default function Home() {
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <HeroBanner activeAuctions={totalCount} connectedUsers={2400} />
+        <HeroBanner 
+          activeAuctions={stats.activeAuctions || totalCount} 
+          connectedUsers={stats.connectedUsers} 
+        />
 
         <section className="mb-6 animate-fade-in relative" style={{ animationDelay: "100ms" }}>
           <CategoryFilter

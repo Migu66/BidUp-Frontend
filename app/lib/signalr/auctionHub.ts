@@ -4,6 +4,7 @@ import type {
   AuctionStatusNotificationDto,
   AuctionTimerSyncDto,
   BidDto,
+  LiveStatsDto,
 } from "@/app/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5240";
@@ -20,6 +21,7 @@ export type AuctionHubEvents = {
   onAuctionEnded: (data: AuctionStatusNotificationDto) => void;
   onBidAccepted: (data: BidDto) => void;
   onBidError: (error: string) => void;
+  onLiveStatsUpdated: (data: LiveStatsDto) => void;
 };
 
 class AuctionHubConnection {
@@ -115,6 +117,12 @@ class AuctionHubConnection {
     this.connection.on("BidError", (error: string) => {
       console.log("[SignalR] BidError recibido:", error);
       this.listeners.onBidError?.(error);
+    });
+
+    // Evento: Estadísticas en tiempo real actualizadas
+    this.connection.on("LiveStatsUpdated", (data: LiveStatsDto) => {
+      console.log("[SignalR] LiveStatsUpdated recibido:", data);
+      this.listeners.onLiveStatsUpdated?.(data);
     });
   }
 
