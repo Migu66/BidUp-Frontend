@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { SearchIcon } from "@/app/components/ui";
 import { useAuth } from "@/app/context";
 
 interface HeaderProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-export function Header({ searchQuery, onSearchChange }: HeaderProps) {
+export function Header({ searchQuery = "", onSearchChange }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const pathname = usePathname();
+  
+  const isPrincipalPage = pathname === "/";
 
   // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
@@ -33,6 +36,7 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
+
 
   const handleLogout = () => {
     logout();
@@ -59,19 +63,21 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
           </Link>
 
           {/* Search bar */}
-          <div className="flex-1 max-w-xl">
-            <div className="relative">
-              <SearchIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
+          {isPrincipalPage && (
+            <div className="flex-1 max-w-xl">
+              <div className="relative">
+                <SearchIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
                 placeholder="Buscar subastas..."
                 value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
+                onChange={(e) => onSearchChange?.(e.target.value)}
                 className="w-full h-10 pl-10 pr-4 bg-gray-900/50 border border-gray-800 focus:border-primary/50 rounded-xl text-white placeholder:text-gray-500 outline-none transition-colors"
                 aria-label="Buscar subastas"
               />
             </div>
           </div>
+        )}
 
           {/* Auth section */}
           <div className="flex items-center gap-2 shrink-0">
@@ -97,14 +103,28 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden animate-scale-in">
                     <div className="px-4 py-3 border-b border-gray-800">
                       <p className="text-sm font-medium text-white">{user?.userName}</p>
                       <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                     </div>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="block w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                    >
+                      Mi Dashboard
+                    </Link>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="block w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                    >
+                      Mi Perfil
+                    </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2.5 text-left text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                      className="w-full px-4 py-2.5 text-left text-sm text-red-500 hover:bg-gray-800 hover:text-red-400 transition-colors border-t border-gray-800"
                     >
                       Cerrar sesión
                     </button>

@@ -9,7 +9,7 @@ import { usePlaceBid } from "@/app/hooks/usePlaceBid";
 import { formatCurrency, formatTimeRemaining, parseTimeRemaining, isEndingVerySoon } from "@/app/lib/utils";
 import type { AuctionDto, BidDto, BidNotificationDto, AuctionStatusNotificationDto, AuctionTimerSyncDto } from "@/app/types";
 import { ClockIcon, GavelIcon, FireIcon, UserIcon } from "@/app/components/ui";
-import { SimpleHeader } from "@/app/components/layout";
+import { Header } from "@/app/components/layout";
 
 interface AuctionDetailClientProps {
   auctionId: string;
@@ -190,7 +190,7 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
   if (isLoading) {
     return (
       <>
-        <SimpleHeader />
+        <Header />
         <AuctionDetailSkeleton />
       </>
     );
@@ -200,7 +200,7 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
   if (error || !auction) {
     return (
       <>
-        <SimpleHeader />
+        <Header />
         <div className="min-h-screen bg-gray-950 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-white mb-4">
@@ -225,7 +225,7 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
 
   return (
     <>
-      <SimpleHeader />
+      <Header/>
       <div className="min-h-screen bg-gray-950">
         {/* Breadcrumb de navegación */}
         <div className="border-b border-gray-800">
