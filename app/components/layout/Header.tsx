@@ -85,12 +85,13 @@ export function Header({ searchQuery = "", onSearchChange }: HeaderProps) {
               <>
                 <Link
                   href="/auctions/create"
-                  className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-dark text-white rounded-xl transition-colors shadow-lg shadow-primary/25 hidden sm:flex items-center gap-2"
+                  className="px-4 py-2 text-sm font-medium bg-primary hover:bg-primary-dark text-white rounded-xl transition-colors shadow-lg shadow-primary/25 flex items-center gap-2"
+                  aria-label="Crear subasta"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  Crear Subasta
+                  <span className="hidden sm:inline">Crear Subasta</span>
                 </Link>
                 <div className="relative" ref={dropdownRef}>
                 <button
