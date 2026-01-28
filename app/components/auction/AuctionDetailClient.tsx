@@ -219,7 +219,9 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
   }
 
   const isEnding = isEndingVerySoon(auction.timeRemaining);
-  const isActive = auction.status === "Active";
+  const timeData = parseTimeRemaining(auction.timeRemaining);
+  const hasTimeRemaining = timeData.totalSeconds > 0;
+  const isActive = auction.status === "Active" && hasTimeRemaining;
   const timeDisplay = formatTimeRemaining(auction.timeRemaining);
   const displayedBids = showAllBids ? bids : bids.slice(0, 5);
 
