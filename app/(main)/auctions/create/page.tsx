@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateAuctionForm } from "@/app/components/auction";
+import { Header } from "@/app/components/layout";
 import { useAuth } from "@/app/context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -20,8 +21,9 @@ export default function CreateAuctionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] py-8">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#0a0a0f]">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Crear Nueva Subasta</h1>
           <p className="text-gray-400">
