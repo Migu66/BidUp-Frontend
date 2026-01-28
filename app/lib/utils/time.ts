@@ -9,22 +9,34 @@ export function parseTimeRemaining(timeSpan: string): {
   totalSeconds: number;
 } {
   // TimeSpan puede venir como "d.HH:mm:ss.ffffff" o "HH:mm:ss.ffffff"
-  const cleanTimeSpan = timeSpan.split(".").slice(0, 2).join("."); // Remover fracciones de segundo
+  // Primero separamos por ":" para identificar el formato
+  const colonParts = timeSpan.split(":");
   
   let days = 0;
-  let timePart = cleanTimeSpan;
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
 
-  // Verificar si tiene días (formato: "d.HH:mm:ss")
-  if (cleanTimeSpan.includes(".")) {
-    const parts = cleanTimeSpan.split(".");
-    days = parseInt(parts[0], 10);
-    timePart = parts[1];
+  if (colonParts.length >= 3) {
+    // Formato: "HH:mm:ss" o "d.HH:mm:ss"
+    const firstPart = colonParts[0];
+    
+    // Verificar si el primer segmento contiene días (formato "d.HH")
+    if (firstPart.includes(".")) {
+      const dayHourParts = firstPart.split(".");
+      days = parseInt(dayHourParts[0], 10) || 0;
+      hours = parseInt(dayHourParts[1], 10) || 0;
+    } else {
+      hours = parseInt(firstPart, 10) || 0;
+    }
+    
+    minutes = parseInt(colonParts[1], 10) || 0;
+    
+    // El último segmento puede tener fracciones de segundo: "ss.ffffff"
+    // Solo tomamos la parte entera de los segundos
+    const secondsPart = colonParts[2].split(".")[0];
+    seconds = parseInt(secondsPart, 10) || 0;
   }
-
-  const timeParts = timePart.split(":");
-  const hours = parseInt(timeParts[0] || "0", 10);
-  const minutes = parseInt(timeParts[1] || "0", 10);
-  const seconds = parseInt(timeParts[2] || "0", 10);
 
   const totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
 
