@@ -115,9 +115,16 @@ export async function getActiveAuctions(
     if (error instanceof AuctionError) {
       throw error;
     }
+    // Error de red o conexión
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new AuctionError(
+        'No se pudo conectar con el servidor. Verifica tu conexión.',
+        [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      );
+    }
+    // Error desconocido
     throw new AuctionError(
-      'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.',
-      [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      error instanceof Error ? error.message : 'Error al obtener las subastas'
     );
   }
 }
@@ -146,9 +153,16 @@ export async function getAuctionById(id: string): Promise<AuctionDto> {
     if (error instanceof AuctionError) {
       throw error;
     }
+    // Error de red o conexión
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new AuctionError(
+        'No se pudo conectar con el servidor. Verifica tu conexión.',
+        [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      );
+    }
+    // Error desconocido
     throw new AuctionError(
-      'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.',
-      [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      error instanceof Error ? error.message : 'Error al obtener la subasta'
     );
   }
 }
@@ -189,9 +203,16 @@ export async function getAuctionsByCategory(
     if (error instanceof AuctionError) {
       throw error;
     }
+    // Error de red o conexión
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new AuctionError(
+        'No se pudo conectar con el servidor. Verifica tu conexión.',
+        [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      );
+    }
+    // Error desconocido
     throw new AuctionError(
-      'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.',
-      [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      error instanceof Error ? error.message : 'Error al obtener las subastas'
     );
   }
 }
@@ -216,9 +237,16 @@ export async function getCategories(): Promise<CategoryDto[]> {
     if (error instanceof AuctionError) {
       throw error;
     }
+    // Error de red o conexión
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new AuctionError(
+        'No se pudo conectar con el servidor. Verifica tu conexión.',
+        [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      );
+    }
+    // Error desconocido
     throw new AuctionError(
-      'No se pudo conectar con el servidor. Verifica que el backend esté ejecutándose.',
-      [`Servidor: ${API_BASE_URL}`, 'Asegúrate de que el backend esté en ejecución']
+      error instanceof Error ? error.message : 'Error al obtener las categorías'
     );
   }
 }

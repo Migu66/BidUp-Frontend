@@ -132,8 +132,17 @@ export async function getAuctionBids(
     if (error instanceof BidError) {
       throw error;
     }
+    // Error de red o conexión
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new BidError(
+        "No se pudo conectar con el servidor. Verifica tu conexión.",
+        undefined,
+        0
+      );
+    }
+    // Error desconocido
     throw new BidError(
-      "No se pudo conectar con el servidor. Verifica tu conexión.",
+      error instanceof Error ? error.message : 'Error al obtener las pujas',
       undefined,
       0
     );
