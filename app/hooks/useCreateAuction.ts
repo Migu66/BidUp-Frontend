@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { auctionApi } from "@/app/lib/api";
-import { useAuth } from "@/app/context";
 import { uploadImageToCloudinary, validateImageFile } from "@/app/lib/utils/cloudinary";
 
 interface CreateAuctionFormData {
@@ -27,7 +26,6 @@ interface FormErrors {
 }
 
 export function useCreateAuction() {
-  const { user } = useAuth();
   const [formData, setFormData] = useState<CreateAuctionFormData>({
     title: "",
     description: "",
@@ -166,13 +164,16 @@ export function useCreateAuction() {
         });
         return false;
       }
-    } catch (error: any) {
+    } catch (error) {
       setErrors({
-        general: error.message || "Error al crear la subasta",
+        general: error instanceof Error ? error.message : "Error al crear la subasta",
       });
       return false;
+    } finally {
       setIsUploadingImage(false);
     }
+    // Este return nunca debería alcanzarse, pero se deja por completitud
+    return false;
   };
 
   return {

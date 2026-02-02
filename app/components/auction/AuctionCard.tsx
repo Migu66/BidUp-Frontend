@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { AuctionDto } from "@/app/types";
 import { formatTimeRemaining, isEndingVerySoon } from "@/app/lib/utils";
 import { formatCurrency } from "@/app/lib/utils";
@@ -105,10 +106,11 @@ export function AuctionCard({ auction, index, viewMode = "grid", skipAnimation =
       <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
         {/* Imagen real o placeholder */}
         {auction.imageUrl ? (
-          <img
+          <Image
             src={auction.imageUrl}
             alt={auction.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         ) : (

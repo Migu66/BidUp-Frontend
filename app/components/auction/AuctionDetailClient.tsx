@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/app/context";
 import { getAuctionById, getAuctionBids } from "@/app/lib/api";
 import { useAuctionSignalR } from "@/app/hooks/useAuctionSignalR";
@@ -71,7 +72,7 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
   }, []);
 
   // Conexión SignalR
-  const { isConnected, isConnecting, error: signalRError } = useAuctionSignalR({
+  const { isConnected, isConnecting } = useAuctionSignalR({
     auctionId,
     onBidPlaced: handleBidPlaced,
     onAuctionUpdated: handleAuctionUpdated,
@@ -251,10 +252,11 @@ export function AuctionDetailClient({ auctionId }: AuctionDetailClientProps) {
             {/* Imagen de la subasta */}
             <div className="relative aspect-square bg-gray-900 rounded-2xl overflow-hidden border border-gray-800">
               {auction.imageUrl ? (
-                <img
+                <Image
                   src={auction.imageUrl}
                   alt={auction.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

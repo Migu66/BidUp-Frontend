@@ -55,7 +55,7 @@ export function useLiveStats(initialStats: LiveStatsDto): UseLiveStatsReturn {
         });
 
         setIsConnected(true);
-      } catch (error) {
+      } catch {
         // Silenciar completamente - el indicador visual muestra el estado
         setIsConnected(false);
       }

@@ -4,6 +4,7 @@ import { useCreateAuction } from "@/app/hooks";
 import { Button } from "@/app/components/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import type { CategoryDto } from "@/app/types";
 import { auctionApi } from "@/app/lib/api";
 
@@ -68,11 +69,12 @@ export function CreateAuctionForm() {
 
             <div className="space-y-4">
               {imagePreview ? (
-                <div className="relative group">
-                  <img
+                <div className="relative group aspect-square">
+                  <Image
                     src={imagePreview}
                     alt="Preview"
-                    className="w-full aspect-square object-cover rounded-xl"
+                    fill
+                    className="object-cover rounded-xl"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
                     <label htmlFor="image" className="px-4 py-2 bg-white text-black rounded-lg font-medium cursor-pointer hover:bg-gray-100 transition-colors">

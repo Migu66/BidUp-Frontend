@@ -23,7 +23,6 @@ export default function Home() {
     auctions,
     totalCount,
     isLoading,
-    isLoadingMore,
     hasMore,
     sentinelRef,
   } = useInfiniteAuctions({

@@ -1,6 +1,5 @@
 "use client";
 
-import { useRef } from "react";
 import { FilterIcon, GridIcon, ListIcon } from "@/app/components/ui";
 
 interface CategoryFilterProps {

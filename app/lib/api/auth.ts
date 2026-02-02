@@ -27,7 +27,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   try {
     // Intentar parsear como JSON
     data = await response.json();
-  } catch (error) {
+  } catch {
     // Si falla, intentar leer como texto para diagnosticar
     let bodyText = '';
     try {
@@ -38,7 +38,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
         contentType,
         body: bodyText.substring(0, 500) // Primeros 500 caracteres
       });
-    } catch (textError) {
+    } catch {
       console.error('No se pudo leer el cuerpo de la respuesta');
     }
     

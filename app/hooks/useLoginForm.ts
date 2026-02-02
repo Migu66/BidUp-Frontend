@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, type ChangeEvent, type FormEvent } from 'react';
-import type { LoginRequest, ApiResponse, AuthResponse } from '@/app/types/auth';
+import type { LoginRequest, AuthResponse } from '@/app/types/auth';
 import { login, AuthError } from '@/app/lib/api/auth';
 
 export interface LoginFormErrors {

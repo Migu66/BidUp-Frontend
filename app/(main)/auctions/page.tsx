@@ -18,7 +18,6 @@ export default function AuctionsPage() {
     auctions,
     totalCount,
     isLoading,
-    isLoadingMore,
     error,
     hasMore,
     reset,
