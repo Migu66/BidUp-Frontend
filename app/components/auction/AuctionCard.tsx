@@ -105,7 +105,11 @@ export function AuctionCard({ auction, index, viewMode = "grid", skipAnimation =
       {/* Imagen */}
       <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden">
         {/* Imagen real o placeholder */}
-        {auction.imageUrl ? (
+        {auction.imageUrl && 
+         auction.imageUrl.trim() !== '' && 
+         (auction.imageUrl.startsWith('http://') || 
+          auction.imageUrl.startsWith('https://') || 
+          auction.imageUrl.startsWith('/')) ? (
           <Image
             src={auction.imageUrl}
             alt={auction.title}
